@@ -17,14 +17,14 @@ let metaPromise = fetch("meta.json").then(resp => {
 });
 
 const EMPTY = 0;
-const WALL = 1;
+const ROCK = 1;
 const CHIKIN = 2;
 const APPLE = 3;
 const TILEMAP = {
     " ": EMPTY,
-    ".": WALL,
+    ".": ROCK,
     "c": CHIKIN,
-    "a": APPLE
+    "a": APPLE,
 };
 
 let tilesPromise = fetch("tiles.txt").then(resp => {
@@ -83,18 +83,21 @@ function getChikinPos(tiles) {
 }
 
 function createTile(t, meta) {
-    if (t === EMPTY) {
-        return emptyTile();
-    } else if (t === WALL) {
-        return wallTile();
-    } else if (t === CHIKIN) {
-        return emptyTile();
-    } else if (t === APPLE) {
-        return appleTile(meta);
-    } else {
-        console.log("Invalid tile " + t);
-        return emptyTile();
-    }
+    let tile
+    switch (t) {
+        case ROCK: 
+            tile = rockTile(meta);
+            break;
+        case APPLE:
+            tile = appleTile(meta);
+            break;
+        default:
+            console.log("Invalid tile " + t);
+        case EMPTY:
+        case CHIKIN:
+            tile = emptyTile();
+    };
+    return tile;
 }
 
 function emptyTile() {
@@ -102,9 +105,11 @@ function emptyTile() {
     div.classList.add("t", "empty");
     return div;
 }
-function wallTile() {
-    let div = document.createElement("div");
-    div.classList.add("t", "wall");
+function rockTile(meta) {
+    let div = emptyTile();
+    let apple = new Image();
+    apple.src = meta["imgs"]["rock"];
+    div.appendChild(apple);
     return div;
 }
 function appleTile(meta) {

@@ -30,6 +30,9 @@ img {
     opacity: 0;
     width: var(--size);
     height: var(--size);
+    background: url("img/grass_tile.png") repeat;
+    --bgsize: calc(var(--tile) * 3);
+    background-size: var(--bgsize);
 }
 
 .tileContainer {

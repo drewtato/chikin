@@ -17,12 +17,12 @@ let metaPromise = fetch("meta.json").then(resp => {
 });
 
 const EMPTY = 0;
-const ROCK = 1;
+const FENCE = 1;
 const CHIKIN = 2;
 const APPLE = 3;
 const TILEMAP = {
     " ": EMPTY,
-    ".": ROCK,
+    ".": FENCE,
     "c": CHIKIN,
     "a": APPLE,
 };
@@ -85,8 +85,8 @@ function getChikinPos(tiles) {
 function createTile(t, meta) {
     let tile
     switch (t) {
-        case ROCK: 
-            tile = rockTile(meta);
+        case FENCE: 
+            tile = fenceTile(meta);
             break;
         case APPLE:
             tile = appleTile(meta);
@@ -116,6 +116,13 @@ function appleTile(meta) {
     let div = emptyTile();
     let apple = new Image();
     apple.src = meta["imgs"]["apple"];
+    div.appendChild(apple);
+    return div;
+}
+function fenceTile(meta) {
+    let div = emptyTile();
+    let apple = new Image();
+    apple.src = meta["imgs"]["fence"];
     div.appendChild(apple);
     return div;
 }

@@ -16,14 +16,16 @@ let metaPromise = fetch("meta.json").then(resp => {
     return resp.json();
 });
 
-const TILEMAP = {
-    " ": 0,
-    ".": 1,
-    "c": 2
-};
 const EMPTY = 0;
 const WALL = 1;
 const CHIKIN = 2;
+const APPLE = 3;
+const TILEMAP = {
+    " ": EMPTY,
+    ".": WALL,
+    "c": CHIKIN,
+    "a": APPLE
+};
 
 let tilesPromise = fetch("tiles.txt").then(resp => {
     return resp.text();
@@ -61,7 +63,7 @@ function animate(duration, timing, draw) {
 
 function updateSize() {
     let gameArea = document.getElementById("game");
-    let tileProportion = 5;
+    let tileProportion = 15;
     h = Math.floor(gameArea.clientHeight * 0.9);
     w = Math.floor(gameArea.clientWidth * 0.9);
     size = Math.min(h, w);
@@ -80,13 +82,15 @@ function getChikinPos(tiles) {
     }
 }
 
-function createTile(t, tilesize) {
+function createTile(t, meta) {
     if (t === EMPTY) {
         return emptyTile();
     } else if (t === WALL) {
         return wallTile();
     } else if (t === CHIKIN) {
         return emptyTile();
+    } else if (t === APPLE) {
+        return appleTile(meta);
     } else {
         console.log("Invalid tile " + t);
         return emptyTile();
@@ -103,15 +107,22 @@ function wallTile() {
     div.classList.add("t", "wall");
     return div;
 }
+function appleTile(meta) {
+    let div = emptyTile();
+    let apple = new Image();
+    apple.src = meta["imgs"]["apple"];
+    div.appendChild(apple);
+    return div;
+}
 
-function drawWorld(world, tiles, duration) {
+function drawWorld(world, tiles, duration, meta) {
     let domtiles = document.createElement("div")
     domtiles.classList.add("tileContainer");
     for (let row of tiles) {
         let domrow = document.createElement("div")
         domrow.classList.add("worldRow");
         for (let t of row) {
-            let tile = createTile(t);
+            let tile = createTile(t, meta);
             domrow.appendChild(tile);
         }
         domtiles.appendChild(domrow);
@@ -148,7 +159,7 @@ async function gameload(meta, tiles) {
     let pos = getChikinPos(tiles);
     world.style.setProperty("--y", `calc(${-pos[0]} * var(--size) / var(--proportion))`);
     world.style.setProperty("--x", `calc(${-pos[1]} * var(--size) / var(--proportion))`);
-    drawWorld(world, tiles, 2000);
+    drawWorld(world, tiles, 2000, meta);
     
     console.log("Done");
 }

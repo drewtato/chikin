@@ -2,6 +2,12 @@ body {
     margin: 0;
     background: #222;
     color: #eee;
+    font-family: monospace;
+}
+
+img {
+    max-width: 100%;
+    max-height: 100%;
 }
 
 #game {
@@ -14,8 +20,12 @@ body {
     --tile: calc(var(--size) / var(--proportion));
 }
 
+#title {
+    font-size: 40px;
+}
+
 .world {
-    background: #000;
+    background: rgb(73, 60, 41);
     overflow: hidden;
     opacity: 0;
     width: var(--size);
@@ -36,7 +46,6 @@ body {
 
 .t {
     display: inline-block;
-    background: #888;
     width: var(--tile);
     height: var(--tile);
 }
@@ -49,5 +58,5 @@ body {
 }
 
 .t.wall {
-    background: #eee;
+    background: rgb(189, 166, 91);
 }

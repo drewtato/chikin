@@ -60,7 +60,3 @@ img {
     width: var(--tile);
     height: var(--tile);
 }
-
-.t.wall {
-    background: rgb(189, 166, 91);
-}

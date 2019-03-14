@@ -6,6 +6,8 @@ window.addEventListener("load", () => {
     });
 });
 
+window.addEventListener("resize", updateSize);
+
 function sleep(miliseconds) {
     return new Promise(resolve => setTimeout(resolve, miliseconds));
 }
@@ -57,8 +59,9 @@ function animate(duration, timing, draw) {
     });
 }
 
-function updateSize(gameArea) {
-    let tileProportion = 20;
+function updateSize() {
+    let gameArea = document.getElementById("game");
+    let tileProportion = 5;
     h = Math.floor(gameArea.clientHeight * 0.9);
     w = Math.floor(gameArea.clientWidth * 0.9);
     size = Math.min(h, w);
@@ -126,7 +129,7 @@ async function gameload(meta, tiles) {
     let area = document.getElementById("game");
     let world = document.createElement("div");
     world.classList.add("world");
-    updateSize(area);
+    updateSize();
     area.innerHTML = "";
     area.appendChild(world);
     animate(1000, t => t, progress => {

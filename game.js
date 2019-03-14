@@ -174,4 +174,20 @@ async function gameload(meta, tiles) {
     drawWorld(world, tiles, 2000, meta);
     
     console.log("Done");
+    
+    window.onkeydown = (e) => {
+        console.log(e.key)
+        switch (e.key) {
+            case "ArrowUp": pos[0]--;
+                break;
+            case "ArrowDown": pos[0]++;
+                break;
+            case "ArrowLeft": pos[1]--;
+                break;
+            case "ArrowRight": pos[1]++;
+                break;
+        }
+        world.style.setProperty("--y", `calc(${-pos[0]} * var(--size) / var(--proportion))`);
+        world.style.setProperty("--x", `calc(${-pos[1]} * var(--size) / var(--proportion))`);
+    };
 }

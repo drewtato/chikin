@@ -1,5 +1,6 @@
 {
     "imgs": {
-        "birb": "img/birb.png"
+        "birb": "img/chikin.png",
+        "apple": "img/apple.png"
     }
 }

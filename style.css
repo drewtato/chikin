@@ -1,0 +1,53 @@
+body {
+    margin: 0;
+    background: #222;
+    color: #eee;
+}
+
+#game {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100vw;
+    height: 100vh;
+    --tile: calc(var(--size) / var(--proportion));
+}
+
+.world {
+    background: #000;
+    overflow: hidden;
+    opacity: 0;
+    width: var(--size);
+    height: var(--size);
+}
+
+.tileContainer {
+    position: relative;
+    top: calc((var(--size) - var(--tile)) / 2);
+    left: calc((var(--size) - var(--tile)) / 2);
+    transform: translateY(var(--y)) translateX(var(--x));
+    opacity: 0;
+}
+
+.worldRow {
+    height: var(--tile);
+}
+
+.t {
+    display: inline-block;
+    background: #888;
+    width: var(--tile);
+    height: var(--tile);
+}
+
+.chikin {
+    position: absolute;
+    opacity: 0;
+    width: var(--tile);
+    height: var(--tile);
+}
+
+.t.wall {
+    background: #eee;
+}

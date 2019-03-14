@@ -1,7 +1,5 @@
 {
-    "imgs": [
-        {
-            "birb": "birb.png"
-        }
-    ]
+    "imgs": {
+        "birb": "img/birb.png"
+    }
 }

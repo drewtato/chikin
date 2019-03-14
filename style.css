@@ -32,7 +32,7 @@ img {
     width: var(--size);
     height: var(--size);
     background: url("img/grass_tile.png") repeat;
-    --bgsize: calc(var(--tile) * 3);
+    --bgsize: calc(var(--tile) * 4);
     background-size: var(--bgsize);
 }
 

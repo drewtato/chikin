@@ -18,13 +18,19 @@ let metaPromise = fetch("meta.json").then(resp => {
 
 const EMPTY = 0;
 const FENCE = 1;
+const FENCEL = 5;
+const FENCER = 6;
 const CHIKIN = 2;
 const APPLE = 3;
+const ROCK = 4
 const TILEMAP = {
     " ": EMPTY,
-    ".": FENCE,
+    "-": FENCE,
+    "[": FENCEL,
+    "]": FENCER,
     "c": CHIKIN,
     "a": APPLE,
+    "r": ROCK,
 };
 
 let tilesPromise = fetch("tiles.txt").then(resp => {
@@ -85,8 +91,17 @@ function getChikinPos(tiles) {
 function createTile(t, meta) {
     let tile
     switch (t) {
+        case ROCK:
+            tile = rockTile(meta);
+            break;
         case FENCE: 
             tile = fenceTile(meta);
+            break;
+        case FENCEL:
+            tile = fenceLTile(meta);
+            break;
+        case FENCER:
+            tile = fenceRTile(meta);
             break;
         case APPLE:
             tile = appleTile(meta);
@@ -107,23 +122,37 @@ function emptyTile() {
 }
 function rockTile(meta) {
     let div = emptyTile();
-    let apple = new Image();
-    apple.src = meta["imgs"]["rock"];
-    div.appendChild(apple);
+    let image = new Image();
+    image.src = meta["imgs"]["rock"];
+    div.appendChild(image);
     return div;
 }
 function appleTile(meta) {
     let div = emptyTile();
-    let apple = new Image();
-    apple.src = meta["imgs"]["apple"];
-    div.appendChild(apple);
+    let image = new Image();
+    image.src = meta["imgs"]["apple"];
+    div.appendChild(image);
     return div;
 }
 function fenceTile(meta) {
     let div = emptyTile();
-    let apple = new Image();
-    apple.src = meta["imgs"]["fence"];
-    div.appendChild(apple);
+    let image = new Image();
+    image.src = meta["imgs"]["fence"];
+    div.appendChild(image);
+    return div;
+}
+function fenceLTile(meta) {
+    let div = emptyTile();
+    let image = new Image();
+    image.src = meta["imgs"]["fence_left"];
+    div.appendChild(image);
+    return div;
+}
+function fenceRTile(meta) {
+    let div = emptyTile();
+    let image = new Image();
+    image.src = meta["imgs"]["fence_right"];
+    div.appendChild(image);
     return div;
 }
 

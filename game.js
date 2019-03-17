@@ -1,6 +1,6 @@
 window.addEventListener("load", () => {
     let delayer = sleep(1000);
-    console.log("Loaded page");
+    screenlog("Loaded page");
     Promise.all([metaPromise, tilesPromise, delayer]).then(list => {
         gameload(list[0], list[1]);
     });
@@ -10,6 +10,24 @@ window.addEventListener("resize", updateSize);
 
 function sleep(miliseconds) {
     return new Promise(resolve => setTimeout(resolve, miliseconds));
+}
+
+function screenlog(strs) {
+    logdiv = document.getElementById("screenlog");
+    logitem = document.createElement("p");
+    if (!Array.isArray(strs)) {
+        strs = [strs];
+    }
+    for (str of strs) {
+        if (typeof str === "object") {
+            logitem.innerHTML += JSON.stringify(str);
+        } else {
+            logitem.innerHTML += str.toString();
+        }
+        logitem.innerHTML += ' ';
+    }
+    logdiv.appendChild(logitem);
+    logdiv.scrollTop = logdiv.scrollHeight;
 }
 
 let metaPromise = fetch("meta.json").then(resp => {
@@ -59,12 +77,19 @@ function animate(duration, timing, draw) {
         let timeFraction = (time - start) / duration;
         if (timeFraction > 1)
             timeFraction = 1;
+        if (timeFraction < 0)
+            timeFraction = 0;
         // calculate the current animation state
         let progress = timing(timeFraction);
         draw(progress); // draw it
         if (timeFraction < 1)
             requestAnimationFrame(animate);
     });
+}
+
+async function animawait(duration, timing, draw) {
+    animate(duration, timing, draw);
+    await sleep(duration);
 }
 
 function updateSize() {
@@ -107,7 +132,7 @@ function createTile(t, meta) {
             tile = appleTile(meta);
             break;
         default:
-            console.log("Invalid tile " + t);
+            screenlog("Invalid tile " + t);
         case EMPTY:
         case CHIKIN:
             tile = emptyTile();
@@ -174,49 +199,94 @@ function drawWorld(world, tiles, duration, meta) {
     });
 }
 
+function setPos(world, pos) {
+    world.style.setProperty(
+        "--y",
+        `calc(${-pos[0]} * var(--size) / var(--proportion))`
+    );
+    world.style.setProperty(
+        "--x",
+        `calc(${-pos[1]} * var(--size) / var(--proportion))`
+    );
+}
+
+async function keydown(world, pressed, pos) {
+    while (pressed.length) {
+        screenlog(pressed);
+        let ydif = 0;
+        let xdif = 0;
+        switch (pressed[0]) {
+            case "w": 
+            ydif = -1;
+            break;
+            case "s":
+            ydif = 1;
+            break;
+            case "a": 
+            xdif = -1;
+            break;
+            case "d":
+            xdif = 1;
+            break;
+            default:
+            return;
+        }
+        let oldpos = pos.slice();
+        await animawait(180, t => t, progress => {
+            let newpos = [oldpos[0] + ydif * progress, oldpos[1] + xdif * progress];
+            setPos(world, newpos);
+        });
+        pos[0] += ydif;
+        pos[1] += xdif;
+    }
+};
+
 async function gameload(meta, tiles) {
-    console.log("Loaded game");
-    console.log(meta);
-    console.log(tiles);
+    screenlog("Loaded game");
+    screenlog(["meta:", meta]);
+    screenlog(["tiles:", tiles]);
     let area = document.getElementById("game");
     let world = document.createElement("div");
     world.classList.add("world");
     updateSize();
     area.innerHTML = "";
     area.appendChild(world);
-    animate(1000, t => t, progress => {
+    let pos = getChikinPos(tiles);
+    setPos(world, pos);
+    animate(250, t => t, progress => {
         world.style.opacity = progress;
     });
-    await sleep(1000);
+    await sleep(250);
     chikinImg = new Image();
     chikinImg.src = meta["imgs"]["birb"];
     chikinImg.classList.add("chikin");
     chikinImg.alt = "chikin";
     area.appendChild(chikinImg);
-    animate(1000, t => t, progress => {
+    animate(250, t => t, progress => {
         chikinImg.style.opacity = progress;
     });
-    await sleep(1000);
-    let pos = getChikinPos(tiles);
-    world.style.setProperty("--y", `calc(${-pos[0]} * var(--size) / var(--proportion))`);
-    world.style.setProperty("--x", `calc(${-pos[1]} * var(--size) / var(--proportion))`);
-    drawWorld(world, tiles, 2000, meta);
+    await sleep(250);
+    drawWorld(world, tiles, 250, meta);
     
-    console.log("Done");
+    screenlog("Done");
     
-    window.onkeydown = (e) => {
-        console.log(e.key)
-        switch (e.key) {
-            case "ArrowUp": pos[0]--;
-                break;
-            case "ArrowDown": pos[0]++;
-                break;
-            case "ArrowLeft": pos[1]--;
-                break;
-            case "ArrowRight": pos[1]++;
-                break;
+    let pressed = [];
+    let running = false;
+    window.onkeyup = (e) => {
+        let i = pressed.indexOf(e.key);
+        if (i >= 0) {
+            pressed.splice(i, 1);
         }
-        world.style.setProperty("--y", `calc(${-pos[0]} * var(--size) / var(--proportion))`);
-        world.style.setProperty("--x", `calc(${-pos[1]} * var(--size) / var(--proportion))`);
+    };
+    window.onkeydown = async function push(e) {
+        if (pressed.indexOf(e.key) === -1) {
+            pressed.push(e.key);
+        }
+        if (running) {
+            return;
+        }
+        running = true;
+        await keydown(world, pressed, pos);
+        running = false;
     };
 }

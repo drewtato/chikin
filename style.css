@@ -3,6 +3,12 @@ body {
     background: #222;
     color: #eee;
     font-family: monospace;
+    display: flex;
+}
+
+body>* {
+    max-height: 100vh;
+    overflow: auto;
 }
 
 img {
@@ -21,17 +27,27 @@ img {
     --tile: calc(var(--size) / var(--proportion));
 }
 
+#screenlog {
+    width: 40%;
+}
+#screenlog>p {
+    font-family: monospace;
+    word-wrap: break-word;
+    margin: 0.5em 0;
+}
+
 #title {
     font-size: 40px;
 }
 
 .world {
-    background: rgb(73, 60, 41);
+    --x: 0;
+    --y: 0;
     overflow: hidden;
     opacity: 0;
     width: var(--size);
     height: var(--size);
-    background: url("img/grass_tile.png") repeat;
+    background: var(--x) var(--y) rgb(73, 60, 41) url("img/grass_tile.png") repeat;
     --bgsize: calc(var(--tile) * 4);
     background-size: var(--bgsize);
 }

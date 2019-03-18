@@ -95,6 +95,10 @@ function createTile(t, tiledata) {
         let image = new Image();
         image.src = tiledata[t].img;
         tile.appendChild(image);
+        if ("size" in tiledata[t]) {
+            image.style.setProperty("height", `calc(var(--tile) * ${tiledata[t].size[0]})`)
+            image.style.setProperty("width", `calc(var(--tile) * ${tiledata[t].size[1]})`)
+        }
     }
     return tile;
 }
@@ -140,13 +144,21 @@ async function keydown(world, pressed, pos) {
         let ydif = 0;
         let xdif = 0;
         switch (pressed[0]) {
-            case "w": ydif = -1;
+            case "w":
+            case "ArrowUp":
+                ydif = -1;
                 break;
-            case "s": ydif = 1;
+            case "s":
+            case "ArrowDown":
+                ydif = 1;
                 break;
-            case "a": xdif = -1;
+            case "a":
+            case "ArrowLeft":
+                xdif = -1;
                 break;
-            case "d": xdif = 1;
+            case "d":
+            case "ArrowRight":
+                xdif = 1;
                 break;
             default:
                 return;
@@ -220,6 +232,7 @@ async function gameload(meta, tiletxt) {
     // Keypress handlers
     let pressed = [];
     let running = false;
+    let usedkeys = new Set(["w", "ArrowUp", "s", "ArrowDown", "a", "ArrowLeft", "d", "ArrowRight"]);
     window.onkeyup = (e) => {
         let i = pressed.indexOf(e.key);
         if (i >= 0) {
@@ -228,6 +241,7 @@ async function gameload(meta, tiletxt) {
     };
     window.onkeydown = async function push(e) {
         if (pressed.indexOf(e.key) === -1) {
+            if (usedkeys.has(e.key))
             pressed.push(e.key);
         }
         if (running) {

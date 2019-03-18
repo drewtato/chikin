@@ -62,10 +62,10 @@ img {
 
 .worldRow {
     height: var(--tile);
+    display: flex;
 }
 
 .t {
-    display: inline-block;
     width: var(--tile);
     height: var(--tile);
 }

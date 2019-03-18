@@ -1,5 +1,10 @@
 {
     "tiles": {
+        "coop": {
+            "img": "img/coop.png",
+            "code": "h",
+            "size": [3,3]
+        },
         "apple": {
             "img": "img/apple.png",
             "code": "a"

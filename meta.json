@@ -4,8 +4,8 @@
         "apple": "img/apple.png",
         "rock": "img/rock.png",
         "grass": "img/grass_tile.png",
-        "fence": "img/fence_horizontal.png",
-        "fence_left": "img/fence_left.png",
-        "fence_right": "img/fence_right.png"
+        "fence": "img/fencebottom.png",
+        "fence_left": "img/fenceleft.png",
+        "fence_right": "img/fenceright.png"
     }
 }

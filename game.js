@@ -253,19 +253,17 @@ async function gameload(meta, tiles) {
     area.appendChild(world);
     let pos = getChikinPos(tiles);
     setPos(world, pos);
-    animate(250, t => t, progress => {
+    await animawait(250, t => t, progress => {
         world.style.opacity = progress;
     });
-    await sleep(250);
     chikinImg = new Image();
     chikinImg.src = meta["imgs"]["birb"];
     chikinImg.classList.add("chikin");
     chikinImg.alt = "chikin";
     area.appendChild(chikinImg);
-    animate(250, t => t, progress => {
+    await animawait(250, t => t, progress => {
         chikinImg.style.opacity = progress;
     });
-    await sleep(250);
     drawWorld(world, tiles, 250, meta);
     
     screenlog("Done");

@@ -51,9 +51,9 @@ function animate(duration, timing, draw) {
         // timeFraction goes from 0 to 1
         let timeFraction = (time - start) / duration;
         if (timeFraction > 1)
-            timeFraction = 1;
+        timeFraction = 1;
         if (timeFraction < 0)
-            timeFraction = 0;
+        timeFraction = 0;
         // calculate the current animation state
         let progress = timing(timeFraction);
         draw(progress); // draw it
@@ -65,6 +65,22 @@ function animate(duration, timing, draw) {
 async function animawait(duration, timing, draw) {
     animate(duration, timing, draw);
     await sleep(duration);
+}
+
+function parseTileTxt(tiletxt, tilecodes, chikincode) {
+    let pos = [0,0];
+    let tiles = [];
+    let rows = tiletxt.split("\n");
+    for (let y = 0; y < rows.length; y++) {
+        let row = rows[y].split("");
+        let chikinpos = row.indexOf(chikincode);
+        if (chikinpos >= 0) {
+            pos = [y, chikinpos];
+        }
+        tiles.push(row.map(c => tilecodes[c]));
+    }
+    
+    return [tiles, pos];
 }
 
 // Set size of game area based on window size
@@ -140,7 +156,7 @@ function setPos(world, pos) {
 
 async function keydown(world, pressed, pos) {
     while (pressed.length) {
-        screenlog(pressed);
+        // screenlog(pressed);
         let ydif = 0;
         let xdif = 0;
         switch (pressed[0]) {
@@ -173,20 +189,17 @@ async function keydown(world, pressed, pos) {
     }
 };
 
-function parseTileTxt(tiletxt, tilecodes, chikincode) {
-    let pos = [0,0];
-    let tiles = [];
-    let rows = tiletxt.split("\n");
-    for (let y = 0; y < rows.length; y++) {
-        let row = rows[y].split("");
-        let chikinpos = row.indexOf(chikincode);
-        if (chikinpos >= 0) {
-            pos = [y, chikinpos];
-        }
-        tiles.push(row.map(c => tilecodes[c]));
+function otheractions(key) {
+    switch (key) {
+        case " ":
+        case "Enter":
+            animate(300, t => Math.abs(t * (t - 0.5) * (t - 1) * 3), progress => {
+                for (chikin of document.getElementsByClassName("chikin")) {
+                    chikin.style.setProperty("transform", `translateY(calc(${-progress} * var(--tile)))`)
+                }
+            });
+            break;
     }
-    
-    return [tiles, pos];
 }
 
 async function gameload(meta, tiletxt) {
@@ -240,9 +253,11 @@ async function gameload(meta, tiletxt) {
         }
     };
     window.onkeydown = async function (e) {
+        console.log("\"" + e.key + "\"");
+        otheractions(e.key);
         if (pressed.indexOf(e.key) === -1) {
             if (usedkeys.has(e.key))
-            pressed.push(e.key);
+                pressed.push(e.key);
         }
         if (running) {
             return;

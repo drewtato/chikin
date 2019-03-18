@@ -239,7 +239,7 @@ async function gameload(meta, tiletxt) {
             pressed.splice(i, 1);
         }
     };
-    window.onkeydown = async function push(e) {
+    window.onkeydown = async function (e) {
         if (pressed.indexOf(e.key) === -1) {
             if (usedkeys.has(e.key))
             pressed.push(e.key);

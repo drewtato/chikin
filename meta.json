@@ -1,11 +1,55 @@
 {
-    "imgs": {
-        "birb": "img/chikin.png",
-        "apple": "img/apple.png",
-        "rock": "img/rock.png",
-        "grass": "img/grass_tile.png",
-        "fence": "img/fencebottom.png",
-        "fence_left": "img/fenceleft.png",
-        "fence_right": "img/fenceright.png"
+    "tiles": {
+        "apple": {
+            "img": "img/apple.png",
+            "code": "a"
+        },
+        "rock": {
+            "img": "img/rock.png",
+            "code": "k"
+        },
+        "fence_top": {
+            "img": "img/fencetop.png",
+            "code": "-"
+        },
+        "fence_topleft": {
+            "img": "img/fencetopleft.png",
+            "code": "L"
+        },
+        "fence_left": {
+            "img": "img/fenceleft.png",
+            "code": "["
+        },
+        "fence_bottomleft": {
+            "img": "img/fencebottomleft.png",
+            "code": "l"
+        },
+        "fence_bottom": {
+            "img": "img/fencebottom.png",
+            "code": "_"
+        },
+        "fence_bottomright": {
+            "img": "img/fencebottomright.png",
+            "code": "r"
+        },
+        "fence_right": {
+            "img": "img/fenceright.png",
+            "code": "]"
+        },
+        "fence_topright": {
+            "img": "img/fencetopright.png",
+            "code": "R"
+        }
+    },
+    "background": {
+        "grass": {
+            "img": "img/grass.png"
+        }
+    },
+    "characters": {
+        "chikin": {
+            "img": "img/chikin.png",
+            "code": "c"
+        }
     }
 }

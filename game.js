@@ -1,3 +1,4 @@
+// Kickstart everything
 window.addEventListener("load", () => {
     let delayer = sleep(1000);
     screenlog("Loaded page");
@@ -5,21 +6,33 @@ window.addEventListener("load", () => {
         gameload(list[0], list[1]);
     });
 });
-
 window.addEventListener("resize", updateSize);
 
+// Promises for loading files
+let metaPromise = fetch("meta.json").then(resp => {
+    return resp.json();
+});
+
+let tilesPromise = fetch("tiles.txt").then(resp => {
+    return resp.text();
+})
+
+// Generic sleep promise
 function sleep(miliseconds) {
     return new Promise(resolve => setTimeout(resolve, miliseconds));
 }
 
+// Log items to screen (instead of console.log)
 function screenlog(strs) {
     logdiv = document.getElementById("screenlog");
     logitem = document.createElement("p");
     if (!Array.isArray(strs)) {
         strs = [strs];
     }
-    for (str of strs) {
-        if (typeof str === "object") {
+    for (let str of strs) {
+        if (str === undefined) {
+            logitem.innerHTML += "undefined";
+        } else if (typeof str === "object") {
             logitem.innerHTML += JSON.stringify(str);
         } else {
             logitem.innerHTML += str.toString();
@@ -29,44 +42,6 @@ function screenlog(strs) {
     logdiv.appendChild(logitem);
     logdiv.scrollTop = logdiv.scrollHeight;
 }
-
-let metaPromise = fetch("meta.json").then(resp => {
-    return resp.json();
-});
-
-const EMPTY = 0;
-const FENCE = 1;
-const FENCEL = 5;
-const FENCER = 6;
-const CHIKIN = 2;
-const APPLE = 3;
-const ROCK = 4
-const TILEMAP = {
-    " ": EMPTY,
-    "-": FENCE,
-    "[": FENCEL,
-    "]": FENCER,
-    "c": CHIKIN,
-    "a": APPLE,
-    "r": ROCK,
-};
-
-let tilesPromise = fetch("tiles.txt").then(resp => {
-    return resp.text();
-}).then(tilestring => {
-    let tiles = [];
-    for (let line of tilestring.split("\n")) {
-        let row = [];
-        for (let c of line) {
-            let id = TILEMAP[c];
-            if (id !== undefined)
-                row.push(id);
-        }
-        if (row.length)
-            tiles.push(row);
-    }
-    return tiles;
-});
 
 // animate from https://javascript.info/js-animation 
 // under CC-BY-NC-SA with modifications
@@ -92,6 +67,7 @@ async function animawait(duration, timing, draw) {
     await sleep(duration);
 }
 
+// Set size of game area based on window size
 function updateSize() {
     let gameArea = document.getElementById("game");
     let tileProportion = 15;
@@ -103,92 +79,40 @@ function updateSize() {
     style.setProperty("--size", `${size}px`);
 }
 
-function getChikinPos(tiles) {
-    for (let y = 0; y < tiles.length; y++) {
-        for (let x = 0; x < tiles[y].length; x++) {
-            if (tiles[y][x] === 2) {
-                return [y, x];
-            }
-        }
+// Reformat tile data for lookups
+function getTileData(meta) {
+    let tiledata = meta.tiles;
+    let tilecodes = {};
+    for (let tiletype in tiledata) {
+        tilecodes[tiledata[tiletype].code] = tiletype;
     }
+    return [tiledata, tilecodes];
 }
 
-function createTile(t, meta) {
-    let tile
-    switch (t) {
-        case ROCK:
-            tile = rockTile(meta);
-            break;
-        case FENCE: 
-            tile = fenceTile(meta);
-            break;
-        case FENCEL:
-            tile = fenceLTile(meta);
-            break;
-        case FENCER:
-            tile = fenceRTile(meta);
-            break;
-        case APPLE:
-            tile = appleTile(meta);
-            break;
-        default:
-            screenlog("Invalid tile " + t);
-        case EMPTY:
-        case CHIKIN:
-            tile = emptyTile();
-    };
+function createTile(t, tiledata) {
+    let tile = emptyTile();
+    if (t in tiledata) {
+        let image = new Image();
+        image.src = tiledata[t].img;
+        tile.appendChild(image);
+    }
     return tile;
 }
 
 function emptyTile() {
-    let div = document.createElement("div");
-    div.classList.add("t", "empty");
-    return div;
-}
-function rockTile(meta) {
-    let div = emptyTile();
-    let image = new Image();
-    image.src = meta["imgs"]["rock"];
-    div.appendChild(image);
-    return div;
-}
-function appleTile(meta) {
-    let div = emptyTile();
-    let image = new Image();
-    image.src = meta["imgs"]["apple"];
-    div.appendChild(image);
-    return div;
-}
-function fenceTile(meta) {
-    let div = emptyTile();
-    let image = new Image();
-    image.src = meta["imgs"]["fence"];
-    div.appendChild(image);
-    return div;
-}
-function fenceLTile(meta) {
-    let div = emptyTile();
-    let image = new Image();
-    image.src = meta["imgs"]["fence_left"];
-    div.appendChild(image);
-    return div;
-}
-function fenceRTile(meta) {
-    let div = emptyTile();
-    let image = new Image();
-    image.src = meta["imgs"]["fence_right"];
-    div.appendChild(image);
-    return div;
+    let tile = document.createElement("div");
+    tile.classList.add("t");
+    return tile;
 }
 
-function drawWorld(world, tiles, duration, meta) {
+function drawWorld(world, tiles, duration, tiledata) {
     let domtiles = document.createElement("div")
     domtiles.classList.add("tileContainer");
     for (let row of tiles) {
         let domrow = document.createElement("div")
         domrow.classList.add("worldRow");
         for (let t of row) {
-            let tile = createTile(t, meta);
+            let tile = createTile(t, tiledata);
             domrow.appendChild(tile);
         }
         domtiles.appendChild(domrow);
@@ -216,20 +140,16 @@ async function keydown(world, pressed, pos) {
         let ydif = 0;
         let xdif = 0;
         switch (pressed[0]) {
-            case "w": 
-            ydif = -1;
-            break;
-            case "s":
-            ydif = 1;
-            break;
-            case "a": 
-            xdif = -1;
-            break;
-            case "d":
-            xdif = 1;
-            break;
+            case "w": ydif = -1;
+                break;
+            case "s": ydif = 1;
+                break;
+            case "a": xdif = -1;
+                break;
+            case "d": xdif = 1;
+                break;
             default:
-            return;
+                return;
         }
         let oldpos = pos.slice();
         await animawait(180, t => t, progress => {
@@ -241,33 +161,63 @@ async function keydown(world, pressed, pos) {
     }
 };
 
-async function gameload(meta, tiles) {
-    screenlog("Loaded game");
-    screenlog(["meta:", meta]);
-    screenlog(["tiles:", tiles]);
+function parseTileTxt(tiletxt, tilecodes, chikincode) {
+    let pos = [0,0];
+    let tiles = [];
+    let rows = tiletxt.split("\n");
+    for (let y = 0; y < rows.length; y++) {
+        let row = rows[y].split("");
+        let chikinpos = row.indexOf(chikincode);
+        if (chikinpos >= 0) {
+            pos = [y, chikinpos];
+        }
+        tiles.push(row.map(c => tilecodes[c]));
+    }
+    
+    return [tiles, pos];
+}
+
+async function gameload(meta, tiletxt) {
+    // Deal with tile info
+    let datacodes = getTileData(meta);
+    let tiledata = datacodes[0];
+    let tilecodes = datacodes[1];
+    // screenlog(["tiledata:", tiledata]);
+    let tilesandpos = parseTileTxt(tiletxt, tilecodes, meta.characters.chikin.code);
+    tiles = tilesandpos[0];
+    pos = tilesandpos[1];
+    
+    // Set up game area
+    updateSize();
     let area = document.getElementById("game");
     let world = document.createElement("div");
     world.classList.add("world");
-    updateSize();
     area.innerHTML = "";
     area.appendChild(world);
-    let pos = getChikinPos(tiles);
+    
+    // Place chikin
     setPos(world, pos);
-    await animawait(250, t => t, progress => {
-        world.style.opacity = progress;
-    });
     chikinImg = new Image();
-    chikinImg.src = meta["imgs"]["birb"];
+    chikinImg.src = meta.characters.chikin.img;
     chikinImg.classList.add("chikin");
     chikinImg.alt = "chikin";
     area.appendChild(chikinImg);
-    await animawait(250, t => t, progress => {
+    
+    screenlog("Loaded game");
+    // screenlog(["tiles:", tiles]);
+    
+    // Fade in things
+    await animawait(500, t => t, progress => {
         chikinImg.style.opacity = progress;
     });
-    drawWorld(world, tiles, 250, meta);
-    
+    await animate(1000, t => t, progress => {
+        world.style.opacity = progress;
+    });
+    // Fade in world
+    drawWorld(world, tiles, 1000, tiledata);
     screenlog("Done");
     
+    // Keypress handlers
     let pressed = [];
     let running = false;
     window.onkeyup = (e) => {

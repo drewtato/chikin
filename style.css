@@ -47,7 +47,7 @@ img {
     opacity: 0;
     width: var(--size);
     height: var(--size);
-    background: var(--x) var(--y) rgb(73, 60, 41) url("img/grass_tile.png") repeat;
+    background: var(--x) var(--y) rgb(73, 60, 41) url("img/grass.png") repeat;
     --bgsize: calc(var(--tile) * 4);
     background-size: var(--bgsize);
 }

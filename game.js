@@ -51,9 +51,9 @@ function animate(duration, timing, draw) {
         // timeFraction goes from 0 to 1
         let timeFraction = (time - start) / duration;
         if (timeFraction > 1)
-        timeFraction = 1;
+            timeFraction = 1;
         if (timeFraction < 0)
-        timeFraction = 0;
+            timeFraction = 0;
         // calculate the current animation state
         let progress = timing(timeFraction);
         draw(progress); // draw it
@@ -71,8 +71,12 @@ function parseTileTxt(tiletxt, tilecodes, chikincode) {
     let pos = [0,0];
     let tiles = [];
     let rows = tiletxt.split("\n");
-    for (let y = 0; y < rows.length; y++) {
+    let y;
+    for (y = 0; y < rows.length; y++) {
         let row = rows[y].split("");
+        if (row[0] === ':') {
+            break;
+        }
         let chikinpos = row.indexOf(chikincode);
         if (chikinpos >= 0) {
             pos = [y, chikinpos];
@@ -80,13 +84,21 @@ function parseTileTxt(tiletxt, tilecodes, chikincode) {
         tiles.push(row.map(c => tilecodes[c]));
     }
     
-    return [tiles, pos];
+    let fgtiles = []
+    for (y++; y < rows.length; y++) {
+        let row = rows[y].split(" ");
+        code = row[0];
+        coords = row[1].split(",").map(n => parseInt(n, 10));
+        fgtiles.push([tilecodes[code], coords]);
+    }
+    
+    return [tiles, fgtiles, pos];
 }
 
 // Set size of game area based on window size
 function updateSize() {
     let gameArea = document.getElementById("game");
-    let tileProportion = 15;
+    let tileProportion = 10;
     h = Math.floor(gameArea.clientHeight * 0.9);
     w = Math.floor(gameArea.clientWidth * 0.9);
     size = Math.min(h, w);
@@ -125,9 +137,14 @@ function emptyTile() {
     return tile;
 }
 
-function drawWorld(world, tiles, duration, tiledata) {
-    let domtiles = document.createElement("div")
+function drawWorld(world, tiles, fgtiles, duration, tiledata) {
+    let domtiles = document.createElement("div");
     domtiles.classList.add("tileContainer");
+    
+    let fgdomtiles = document.createElement("div");
+    fgdomtiles.classList.add("fgtiles");
+    domtiles.appendChild(fgdomtiles);
+    
     for (let row of tiles) {
         let domrow = document.createElement("div")
         domrow.classList.add("worldRow");
@@ -137,7 +154,17 @@ function drawWorld(world, tiles, duration, tiledata) {
         }
         domtiles.appendChild(domrow);
     }
-    world.appendChild(domtiles)
+    world.appendChild(domtiles);
+    
+    for (let t of fgtiles) {
+        let code = t[0]
+        let coords = t[1]
+        let tile = createTile(code, tiledata);
+        tile.style.setProperty(`top`, `calc(var(--tile) * ${coords[0]})`);
+        tile.style.setProperty(`left`, `calc(var(--tile) * ${coords[1]})`);
+        fgdomtiles.appendChild(tile);
+    }
+    
     animate(duration, t => t, progress => {
         domtiles.style.opacity = progress;
     });
@@ -210,7 +237,8 @@ async function gameload(meta, tiletxt) {
     // screenlog(["tiledata:", tiledata]);
     let tilesandpos = parseTileTxt(tiletxt, tilecodes, meta.characters.chikin.code);
     tiles = tilesandpos[0];
-    pos = tilesandpos[1];
+    fgtiles = tilesandpos[1];
+    pos = tilesandpos[2];
     
     // Set up game area
     updateSize();
@@ -239,7 +267,7 @@ async function gameload(meta, tiletxt) {
         world.style.opacity = progress;
     });
     // Fade in world
-    drawWorld(world, tiles, 1000, tiledata);
+    drawWorld(world, tiles, fgtiles, 1000, tiledata);
     screenlog("Done");
     
     // Keypress handlers

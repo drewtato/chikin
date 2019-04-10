@@ -60,14 +60,26 @@ img {
     opacity: 0;
 }
 
+.fgtiles {
+    position: relative;
+    top:0;
+    left:0;
+}
+
+.fgtiles>div {
+    position: absolute;
+}
+
 .worldRow {
     height: var(--tile);
     display: flex;
 }
 
 .t {
-    width: var(--tile);
-    height: var(--tile);
+    max-width: var(--tile);
+    max-height: var(--tile);
+    min-width: var(--tile);
+    min-height: var(--tile);
 }
 
 .chikin {

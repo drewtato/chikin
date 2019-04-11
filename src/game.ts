@@ -1,31 +1,41 @@
-// Kickstart everything
-window.addEventListener("load", () => {
-    let delayer = sleep(1000);
-    screenlog("Loaded page");
-    Promise.all([metaPromise, tilesPromise, delayer]).then(list => {
-        gameload(list[0], list[1]);
-    });
-});
-window.addEventListener("resize", updateSize);
-
-// Promises for loading files
-let metaPromise = fetch("meta.json").then(resp => {
-    return resp.json();
-});
-
-let tilesPromise = fetch("tiles.txt").then(resp => {
-    return resp.text();
-})
+// Interfaces
+interface metadata {
+    tiles: {
+        [key: string]: {
+            img: string;
+            code: string;
+            size: string;
+        };
+    };
+    background: {
+        [key: string]: {
+            img: string;
+            code: string;
+            size: string;
+        };
+    };
+    characters: {
+        [key: string]: {
+            img: string;
+            code: string;
+            size: string;
+        };
+    };
+}
 
 // Generic sleep promise
-function sleep(miliseconds) {
+function sleep(miliseconds: number) {
     return new Promise(resolve => setTimeout(resolve, miliseconds));
 }
 
 // Log items to screen (instead of console.log)
-function screenlog(strs) {
-    logdiv = document.getElementById("screenlog");
-    logitem = document.createElement("p");
+function screenlog(strs: any) {
+    let logdiv = document.getElementById("screenlog");
+    if (logdiv === null) {
+        console.log(strs);
+        return;
+    }
+    let logitem = document.createElement("p");
     if (!Array.isArray(strs)) {
         strs = [strs];
     }
@@ -45,7 +55,7 @@ function screenlog(strs) {
 
 // animate from https://javascript.info/js-animation 
 // under CC-BY-NC-SA with modifications
-function animate(duration, timing, draw) {
+function animate(duration: number, timing: (t: number) => number, draw: (progress: number) => any) {
     let start = performance.now();
     requestAnimationFrame(function animate(time) {
         // timeFraction goes from 0 to 1
@@ -62,13 +72,15 @@ function animate(duration, timing, draw) {
     });
 }
 
-async function animawait(duration, timing, draw) {
+async function animawait(duration: number, timing: (t: number) => number, draw: (progress: number) => any) {
     animate(duration, timing, draw);
     await sleep(duration);
 }
 
-function parseTileTxt(tiletxt, tilecodes, chikincode) {
-    let pos = [0,0];
+function parseTileTxt(tiletxt: string, tilecodes: {
+    [key: string]: string
+}, chikincode: any) {
+    let pos = [0, 0];
     let tiles = [];
     let rows = tiletxt.split("\n");
     let y;
@@ -81,43 +93,55 @@ function parseTileTxt(tiletxt, tilecodes, chikincode) {
         if (chikinpos >= 0) {
             pos = [y, chikinpos];
         }
-        tiles.push(row.map(c => tilecodes[c]));
+        tiles.push(row.map((c: string | number) => tilecodes[c]));
     }
-    
+
     let fgtiles = []
     for (y++; y < rows.length; y++) {
         let row = rows[y].split(" ");
-        code = row[0];
-        coords = row[1].split(",").map(n => parseInt(n, 10));
+        let code = row[0];
+        let coords = row[1].split(",").map((n: string) => parseInt(n, 10));
         fgtiles.push([tilecodes[code], coords]);
     }
-    
+
     return [tiles, fgtiles, pos];
 }
 
 // Set size of game area based on window size
 function updateSize() {
     let gameArea = document.getElementById("game");
+    if (gameArea === null) {
+        throw "No game area";
+    }
     let tileProportion = 10;
-    h = Math.floor(gameArea.clientHeight * 0.9);
-    w = Math.floor(gameArea.clientWidth * 0.9);
-    size = Math.min(h, w);
-    style = gameArea.style;
+    let h = Math.floor(gameArea.clientHeight * 0.9);
+    let w = Math.floor(gameArea.clientWidth * 0.9);
+    let size = Math.min(h, w);
+    let style = gameArea.style;
     style.setProperty("--proportion", `${tileProportion}`);
     style.setProperty("--size", `${size}px`);
 }
 
 // Reformat tile data for lookups
-function getTileData(meta) {
+function getTileData(meta: metadata) {
     let tiledata = meta.tiles;
-    let tilecodes = {};
+    let tilecodes: {
+        [key: string]: string
+    } = {};
     for (let tiletype in tiledata) {
         tilecodes[tiledata[tiletype].code] = tiletype;
     }
-    return [tiledata, tilecodes];
+    return {
+        data: tiledata,
+        codes: tilecodes
+    };
 }
 
-function createTile(t, tiledata) {
+function createTile(t: string, tiledata: {
+    [key: string]: {
+        size: number[];img: string
+    };
+}) {
     let tile = emptyTile();
     if (t in tiledata) {
         let image = new Image();
@@ -137,14 +161,14 @@ function emptyTile() {
     return tile;
 }
 
-function drawWorld(world, tiles, fgtiles, duration, tiledata) {
+function drawWorld(world: HTMLDivElement, tiles: any[], fgtiles: any[], duration: number, tiledata: any) {
     let domtiles = document.createElement("div");
     domtiles.classList.add("tileContainer");
-    
+
     let fgdomtiles = document.createElement("div");
     fgdomtiles.classList.add("fgtiles");
     domtiles.appendChild(fgdomtiles);
-    
+
     for (let row of tiles) {
         let domrow = document.createElement("div")
         domrow.classList.add("worldRow");
@@ -155,7 +179,7 @@ function drawWorld(world, tiles, fgtiles, duration, tiledata) {
         domtiles.appendChild(domrow);
     }
     world.appendChild(domtiles);
-    
+
     for (let t of fgtiles) {
         let code = t[0]
         let coords = t[1]
@@ -164,13 +188,13 @@ function drawWorld(world, tiles, fgtiles, duration, tiledata) {
         tile.style.setProperty(`left`, `calc(var(--tile) * ${coords[1]})`);
         fgdomtiles.appendChild(tile);
     }
-    
-    animate(duration, t => t, progress => {
-        domtiles.style.opacity = progress;
+
+    animate(duration, (t: number) => t, (progress: number) => {
+        domtiles.style.opacity = progress.toString();
     });
 }
 
-function setPos(world, pos) {
+function setPos(world: HTMLDivElement, pos: any[] | number[]) {
     world.style.setProperty(
         "--y",
         `calc(${-pos[0]} * var(--size) / var(--proportion))`
@@ -181,7 +205,7 @@ function setPos(world, pos) {
     );
 }
 
-async function keydown(world, pressed, pos) {
+async function keydown(world: HTMLDivElement, pressed: any[], pos: any[] | number[]) {
     while (pressed.length) {
         // screenlog(pressed);
         let ydif = 0;
@@ -207,7 +231,7 @@ async function keydown(world, pressed, pos) {
                 return;
         }
         let oldpos = pos.slice();
-        await animawait(180, t => t, progress => {
+        await animawait(180, (t: any) => t, (progress: number) => {
             let newpos = [oldpos[0] + ydif * progress, oldpos[1] + xdif * progress];
             setPos(world, newpos);
         });
@@ -216,62 +240,68 @@ async function keydown(world, pressed, pos) {
     }
 };
 
-function otheractions(key) {
+function otheractions(key: string) {
     switch (key) {
         case " ":
         case "Enter":
-            animate(300, t => Math.abs(t * (t - 0.5) * (t - 1) * 3), progress => {
-                for (chikin of document.getElementsByClassName("chikin")) {
-                    chikin.style.setProperty("transform", `translateY(calc(${-progress} * var(--tile)))`)
+            animate(300, (t: number) => Math.abs(t * (t - 0.5) * (t - 1) * 3), (progress: number) => {
+                for (let chikin of document.getElementsByClassName("chikin") as HTMLCollectionOf < HTMLElement > ) {
+                    chikin.style.setProperty("transform", `translateY(calc(${-progress} * var(--tile)))`);
                 }
             });
             break;
     }
 }
 
-async function gameload(meta, tiletxt) {
+
+async function gameload(meta: metadata, tiletxt: string) {
     // Deal with tile info
     let datacodes = getTileData(meta);
-    let tiledata = datacodes[0];
-    let tilecodes = datacodes[1];
+    let tiledata = datacodes.data;
+    let tilecodes = datacodes.codes;
     // screenlog(["tiledata:", tiledata]);
     let tilesandpos = parseTileTxt(tiletxt, tilecodes, meta.characters.chikin.code);
-    tiles = tilesandpos[0];
-    fgtiles = tilesandpos[1];
-    pos = tilesandpos[2];
-    
+    let tiles = tilesandpos[0];
+    let fgtiles = tilesandpos[1];
+    let pos = tilesandpos[2];
+
     // Set up game area
     updateSize();
+    window.addEventListener("resize", updateSize);
+
     let area = document.getElementById("game");
+    if (area === null) {
+        throw "No game area";
+    }
     let world = document.createElement("div");
     world.classList.add("world");
     area.innerHTML = "";
     area.appendChild(world);
-    
+
     // Place chikin
     setPos(world, pos);
-    chikinImg = new Image();
+    let chikinImg = new Image();
     chikinImg.src = meta.characters.chikin.img;
     chikinImg.classList.add("chikin");
     chikinImg.alt = "chikin";
     area.appendChild(chikinImg);
-    
+
     screenlog("Loaded game");
     // screenlog(["tiles:", tiles]);
-    
+
     // Fade in things
-    await animawait(500, t => t, progress => {
-        chikinImg.style.opacity = progress;
+    await animawait(500, (t: any) => t, (progress: number) => {
+        chikinImg.style.opacity = progress.toString();
     });
-    await animate(1000, t => t, progress => {
-        world.style.opacity = progress;
+    await animate(1000, (t: any) => t, (progress: number) => {
+        world.style.opacity = progress.toString();
     });
     // Fade in world
     drawWorld(world, tiles, fgtiles, 1000, tiledata);
     screenlog("Done");
-    
+
     // Keypress handlers
-    let pressed = [];
+    let pressed: string[] = [];
     let running = false;
     let usedkeys = new Set(["w", "ArrowUp", "s", "ArrowDown", "a", "ArrowLeft", "d", "ArrowRight"]);
     window.onkeyup = (e) => {
@@ -280,7 +310,7 @@ async function gameload(meta, tiletxt) {
             pressed.splice(i, 1);
         }
     };
-    window.onkeydown = async function (e) {
+    window.onkeydown = async function(e) {
         console.log("\"" + e.key + "\"");
         otheractions(e.key);
         if (pressed.indexOf(e.key) === -1) {
@@ -295,3 +325,5 @@ async function gameload(meta, tiletxt) {
         running = false;
     };
 }
+
+export { gameload, sleep, screenlog }

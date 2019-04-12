@@ -113,7 +113,7 @@ function updateSize() {
     if (gameArea === null) {
         throw "No game area";
     }
-    let tileProportion = 10;
+    let tileProportion = 12.5;
     let h = Math.floor(gameArea.clientHeight * 0.9);
     let w = Math.floor(gameArea.clientWidth * 0.9);
     let size = Math.min(h, w);

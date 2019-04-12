@@ -28,7 +28,7 @@
     },
     "overrides": [
         {
-            "files": ["webpack.config.js"],
+            "files": ["webpack*.config.js"],
             "rules": {
                 "no-undef": "off"
             }

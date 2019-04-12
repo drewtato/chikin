@@ -1,14 +1,7 @@
 const path = require("path");
 
 module.exports = {
-    mode: "development",
-    devtool: "inline-source-map",
-    devServer: {
-        contentBase: "./dev",
-        port: "5501",
-        inline: false,
-        open: true,
-    },
+    mode: "release",
     resolve: {
         extensions: [".ts"]
     },
@@ -22,7 +15,7 @@ module.exports = {
     },
     entry: "./src/index.ts",
     output: {
-        path: path.resolve(__dirname, "dev"),
+        path: path.resolve(__dirname, "dist"),
         filename: "main.js",
     },
 };

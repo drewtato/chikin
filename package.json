@@ -14,9 +14,9 @@
     "webpack-dev-server": "^3.3.1"
   },
   "scripts": {
-    "build": "npx webpack",
-    "release": "npx webpack --config ./webpackrelease.config.js",
-    "watch": "npx webpack --watch",
+    "build": "webpack",
+    "release": "webpack --config ./webpackrelease.config.js",
+    "watch": "webpack --watch",
     "serve": "webpack-dev-server",
     "test": "echo Error: no test specified"
   },
